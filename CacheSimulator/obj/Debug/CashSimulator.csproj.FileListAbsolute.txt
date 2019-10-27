@@ -1,0 +1,10 @@
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\bin\Debug\CashSimulator.exe.config
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\bin\Debug\CashSimulator.exe
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\bin\Debug\CashSimulator.pdb
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\obj\Debug\CashSimulator.csprojAssemblyReference.cache
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\obj\Debug\CashSimulator.Form1.resources
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\obj\Debug\CashSimulator.Properties.Resources.resources
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\obj\Debug\CashSimulator.csproj.GenerateResource.cache
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\obj\Debug\CashSimulator.csproj.CoreCompileInputs.cache
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\obj\Debug\CashSimulator.exe
+C:\Users\hacel\source\repos\CashSimulator\CashSimulator\obj\Debug\CashSimulator.pdb

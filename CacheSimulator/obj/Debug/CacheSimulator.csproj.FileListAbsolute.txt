@@ -1,0 +1,10 @@
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\obj\Debug\CacheSimulator.csprojAssemblyReference.cache
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\obj\Debug\CacheSimulator.Form1.resources
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\obj\Debug\CacheSimulator.csproj.GenerateResource.cache
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\obj\Debug\CacheSimulator.csproj.CoreCompileInputs.cache
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\bin\Debug\CacheSimulator.exe.config
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\bin\Debug\CacheSimulator.exe
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\bin\Debug\CacheSimulator.pdb
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\obj\Debug\CacheSimulator.Properties.Resources.resources
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\obj\Debug\CacheSimulator.exe
+C:\Users\hacel\source\repos\CacheSimulator\CacheSimulator\obj\Debug\CacheSimulator.pdb
