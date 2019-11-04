@@ -3,7 +3,7 @@ GUI Cache Simulator
 
 Dongguk univ. Computer Architecture assignment
 
-- [ ] Looking algorithm to memory block
+- [ ] Look function move to memory block
 
 - [ ] Set associative memory inherits from associative cache
 
