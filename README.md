@@ -3,11 +3,15 @@ GUI Cache Simulator
 
 Dongguk univ. Computer Architecture assignment
 
-[] Looking algorithm to memory block
-[] Set associative memory inherits from associative cache
-[] Better random address generator
-[] Add multiple victim algorithm
-[] Refactoring
+-[ ] Looking algorithm to memory block
+
+-[ ] Set associative memory inherits from associative cache
+
+-[ ] Better random address generator
+
+-[ ] Add multiple victim algorithm
+
+-[ ] Refactoring
 
 # Explain
 
