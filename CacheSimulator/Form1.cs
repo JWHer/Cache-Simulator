@@ -92,7 +92,7 @@ namespace CacheSimulator
                 return;
             }
 
-            uint setSize = 0;
+            uint setSize = 1;
             if (t == Type.SetAssociative)
             {
                 if (!uint.TryParse(setText1.Text, out setSize))

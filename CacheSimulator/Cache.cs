@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CacheSimulator
 {
-    enum Type{Direct, Associative, SetAssociative};
+    enum Type { Direct, Associative, SetAssociative };
 
     class Memory
     {
@@ -17,7 +17,7 @@ namespace CacheSimulator
         }
     }
 
-    class Cache:Memory
+    class Cache : Memory
     {
         uint memSize;   // Parent의 크기       (byte)
         uint wordSize;  // Word의 크기         (bit)
@@ -30,7 +30,7 @@ namespace CacheSimulator
         uint setLen;    // Set-Associative     (bit)
 
         uint addrPC;    // Program Counter
-        uint befrPC;
+        uint befrPC;    // For return point
         bool jump, first;
         uint count = 0;
 
@@ -39,12 +39,13 @@ namespace CacheSimulator
         public uint compulsory { get; set; }
         public uint conflict { get; set; }
         public uint capacity { get; set; }
+        public uint lineLength() { return lineLen; }
 
         Type cacheType;
         Block[] mem;
         Memory parent;
         Random random;
-        string vict = "LFU";
+        enum victimAlgorithm { LRU }
 
         /// <summary>
         /// 
@@ -59,21 +60,26 @@ namespace CacheSimulator
         /// <param name="setSize">power of 2</param>
         public Cache(Type t, double speed, Memory parent,
             uint memSize, uint wordSize,
-            uint cacheSize, uint lineSize, uint setSize=1)
-            :base(speed)
+            uint cacheSize, uint lineSize, uint setSize = 1)
+            : base(speed)
         {
+            // Invalid check
+            if (memSize <= 0 || wordSize <= 0 || cacheSize <= 0 || lineSize <= 0 || setSize <= 0)
+            {
+                throw new ArgumentException("Invalid value\r\n");
+            }
+
             cacheType = t;
             //this.speed=speed; speed on base
             this.parent = parent;
-
             this.memSize = memSize;
             this.wordSize = wordSize;
-
             this.cacheSize = cacheSize;
             this.lineSize = lineSize;
             this.setSize = setSize;
-            setLen = (uint) Math.Log(setSize,2);
+            setLen = (uint)Math.Log(setSize, 2);
 
+            // Initailize
             random = new Random();
             addrPC = befrPC = 0;
             hitCount = compulsory = conflict = capacity = 0;
@@ -98,45 +104,51 @@ namespace CacheSimulator
             switch (cacheType)
             {
                 case Type.Direct:
-                    // 태그의 길이를 구합니다.
-                    tagLen = memAddrLen - (uint)Math.Log(lineLen, 2);
-                    if (tagLen + wordSize > lineSize*8)
                     {
-                        uint available = lineSize - wordSize
-                            + (uint)Math.Log(lineLen, 2) + wordLen*8;
-                        throw error(available);
-                    }
+                        // 태그의 길이를 구합니다.
+                        tagLen = memAddrLen - (uint)Math.Log(lineLen, 2);
+                        if (tagLen + wordSize > lineSize * 8)
+                        {
+                            uint available = lineSize - wordSize
+                                + (uint)Math.Log(lineLen, 2) + wordLen * 8;
+                            throw error(available);
+                        }
 
-                    mem = new DirectCache[lineLen];
-                    break;
+                        mem = new DirectCache[lineLen];
+                        break;
+                    }
 
                 case Type.Associative:
-                    // 태그의 길이를 구합니다.
-                    tagLen = memAddrLen;
-                    if (tagLen + wordSize > lineSize*8)
                     {
-                        uint available = lineSize*8 - wordSize + wordLen*8;
-                        throw error(available);
-                    }
+                        // 태그의 길이를 구합니다.
+                        tagLen = memAddrLen;
+                        if (tagLen + wordSize > lineSize * 8)
+                        {
+                            uint available = lineSize * 8 - wordSize + wordLen * 8;
+                            throw error(available);
+                        }
 
-                    mem = new AsctvCache[lineLen];
-                    break;
+                        mem = new AsctvCache[lineLen];
+                        break;
+                    }
 
                 case Type.SetAssociative:
-                    lineLen /= setSize;
-                    if (lineLen <= 0)
-                        throw new ArgumentException("Set nums error(reduce set size)\r\n");
-                    // 태그의 길이를 구합니다.
-                    tagLen = memAddrLen - (uint)Math.Log(lineLen, 2) - setLen;
-                    if (tagLen + wordSize > lineSize*8)
                     {
-                        uint available = lineSize*8 - wordSize*setLen
-                            + (uint)Math.Log(lineLen, 2) + setLen + wordLen*8;
-                        throw error(available);
-                    }
+                        lineLen /= setSize;
+                        if (lineLen <= 0)
+                            throw new ArgumentException("Set nums error(reduce set size)\r\n");
+                        // 태그의 길이를 구합니다.
+                        tagLen = memAddrLen - (uint)Math.Log(lineLen, 2) - setLen;
+                        if (tagLen + wordSize > lineSize * 8)
+                        {
+                            uint available = lineSize * 8 - wordSize * setLen
+                                + (uint)Math.Log(lineLen, 2) + setLen + wordLen * 8;
+                            throw error(available);
+                        }
 
-                    mem = new SetAsctvCache[lineLen];
-                    break;
+                        mem = new SetAsctvCache[lineLen];
+                        break;
+                    }
 
                 default:
                     throw new ArgumentException("Cache Type Error\r\n");
@@ -144,7 +156,7 @@ namespace CacheSimulator
         }
         // End of Constructor
 
-        public AddrInfo Load(double locality, int loop=1)
+        public AddrInfo Load(double locality, int loop = 1)
         {
             double totalTime = 0;
             uint pc = 0;
@@ -155,15 +167,15 @@ namespace CacheSimulator
             }
             else
             {
-                addrInfo= new AddrInfo();
+                addrInfo = new AddrInfo();
             }
 
-            for (int i=0; i<loop; i++)
+            for (int i = 0; i < loop; i++)
             {
-                if(random.NextDouble() > locality)
+                if (random.NextDouble() > locality)
                 {
                     pc = randomAddr();
-                    totalTime+=Lookup(pc, addrInfo);
+                    totalTime += Lookup(pc, addrInfo);
                 }
                 else
                 {
@@ -172,11 +184,9 @@ namespace CacheSimulator
                 }
             }
             addrInfo.time = totalTime;
-            
+
             return addrInfo;
         }
-
-        public uint lineLength() { return lineLen; }
 
         private uint randomAddr()
         {
@@ -202,13 +212,13 @@ namespace CacheSimulator
             }
             return addrPC++ % memSize;
         }
-        
+
         private double Lookup(uint pc, AddrInfo addrInfo)
         {
             // ----------------mem addr---------------- (byte)
             // ----------------Byte Len--------------<< (cache saved by word)
             // ----tag Len---(-line Len-------------)<<
-            
+
 
             switch (cacheType)
             {
@@ -219,86 +229,96 @@ namespace CacheSimulator
                         addrInfo.tag = tag;
                         addrInfo.loc = loc;
 
-                        // Look up
+                        //// Look up
+                        
+                        // Compulsory
                         if (mem[loc] == null)
                         {
                             compulsory++;
                             addrInfo.state = "compulsory";
                             mem[loc] = new DirectCache(tag, wordSize);
-                            setMemInfo(addrInfo);
                         }
+                        // Hit or Conflict
                         else
                         {
-                            // Hit
+                            // Hit(Return)
                             if (((BaseBlock)mem[loc]).tag == tag)
                             {
                                 hitCount++;
                                 addrInfo.state = "hit";
-                                setMemInfo(addrInfo);
                                 return speed;
                             }
+                            // Conflict
                             else
                             {
                                 conflict++;
                                 addrInfo.state = "conflict";
                                 ((BaseBlock)mem[loc]).tag = tag;
-                                setMemInfo(addrInfo);
                             }
                         }
-                        // Miss
+
+                        // Miss(Loading)
                         if (parent is Cache)
                         {
                             addrInfo.child = new AddrInfo();
                             return ((Cache)parent).Lookup(pc, addrInfo.child);
                         }
                         else
+                        {
                             return parent.speed;
+                        }
                     }
                 case Type.Associative:
                     {
                         uint tag = (pc / (wordSize / 8));
                         uint loc = 0;
                         addrInfo.tag = tag;
-                        // Look up
+
+                        //// Look up
+                        
+                        // Hit check
                         while (loc < mem.Length && mem[loc] != null)
                         {
-                            // Hit
+                            // Hit(Return)
                             if (((BaseBlock)mem[loc]).tag == tag)
                             {
                                 hitCount++;
                                 ((AsctvCache)mem[loc]).readOrder = count++;
                                 addrInfo.loc = loc;
                                 addrInfo.state = "hit";
-                                setMemInfo(addrInfo);
                                 return speed;
                             }
                             loc++;
                         }
-                        // Cache Full
+                        // Conflict(Cache Full)
                         if (lineLen == loc)
                         {
                             capacity++;
                             addrInfo.state = "capacity";
                             // Victim algorithm
                             loc = victim();
+                            ((AsctvCache)mem[loc]).tag = tag;
                         }
+                        // Compulsory
                         else
                         {
                             compulsory++;
                             addrInfo.state = "compulsory";
+                            mem[loc] = new AsctvCache(tag, wordSize);
                         }
-                        mem[loc] = new AsctvCache(tag, wordSize);
                         ((AsctvCache)mem[loc]).readOrder = count++;
                         addrInfo.loc = loc;
-                        setMemInfo(addrInfo);
-                        // Miss
+
+                        // Miss(Loading)
                         if (parent is Cache)
                         {
                             addrInfo.child = new AddrInfo();
                             return ((Cache)parent).Lookup(pc, addrInfo.child);
                         }
                         else
+                        {
                             return parent.speed;
+                        }
                     }
 
                 case Type.SetAssociative:
@@ -307,57 +327,64 @@ namespace CacheSimulator
                         uint loc = (pc / (wordSize / 8)) % lineLen;
                         addrInfo.tag = tag;
                         addrInfo.loc = loc;
-
                         uint set = 0;
-                        // Look up
+
+                        //// Look up
+                        
+                        // Compulsory(set)
                         if (mem[loc] == null)
                         {
                             compulsory++;
                             addrInfo.state = "compulsory";
                             mem[loc] = new SetAsctvCache(setSize);
+                            ((SetAsctvCache)mem[loc]).blocks[set] = new BaseBlock(tag, wordSize);
                         }
                         else
                         {
+                            // Hit Check
                             while (set < setSize && ((SetAsctvCache)mem[loc]).blocks[set] != null)
                             {
-                                // Hit
+                                // Hit(Return)
                                 if (((SetAsctvCache)mem[loc]).blocks[set].tag == tag)
                                 {
                                     ((SetAsctvCache)mem[loc]).blocks[set].readOrder = count++;
                                     hitCount++;
                                     addrInfo.state = "hit";
                                     ((SetAddr)addrInfo).set = set;
-                                    setMemInfo(addrInfo);
                                     return speed;
                                 }
                                 set++;
                             }
-                            // Cache Full
+                            // Conflict(Cache Full)
                             if (setSize == set)
                             {
                                 conflict++;
                                 addrInfo.state = "conflict";
                                 // Victim algorithm
-                                set = ((SetAsctvCache)mem[loc]).victim();
+                                set = victim(loc);
+                                ((SetAsctvCache)mem[loc]).blocks[set].tag = tag;
                             }
+                            // Compulsory(associative)
                             else
                             {
                                 compulsory++;
                                 addrInfo.state = "compulsory";
+                                ((SetAsctvCache)mem[loc]).blocks[set] = new BaseBlock(tag, wordSize);
                             }
                         }
-                        ((SetAsctvCache)mem[loc]).blocks[set] = new BaseBlock(tag, wordSize);
                         ((SetAsctvCache)mem[loc]).blocks[set].readOrder = count++;
                         ((SetAddr)addrInfo).set = set;
-                        setMemInfo(addrInfo);
-                        // Miss
+
+                        // Miss(Loading)
                         if (parent is Cache)
                         {
                             addrInfo.child = new AddrInfo();
                             return ((Cache)parent).Lookup(pc, addrInfo.child);
                         }
                         else
+                        {
                             return parent.speed;
+                        }
                     }
 
                 default:
@@ -365,28 +392,40 @@ namespace CacheSimulator
             }
         }
 
-        private void setMemInfo(AddrInfo addrInfo)
+        private uint victim(uint asctvloc = 0)
         {
-            addrInfo.mem= new bool[lineLen];
-            for(int i=0; i<lineLen; i++)
+            if (cacheType == Type.SetAssociative)
             {
-                if (mem[i] != null)
-                    addrInfo.mem[i] = true;
+                var blocks = ((SetAsctvCache)mem[asctvloc]).blocks;
+                uint set = 0;
+                uint lru = 0;
+                while (set < blocks.Length && blocks[set] != null)
+                {
+                    if (blocks[lru].readOrder > blocks[set].readOrder)
+                    {
+                        lru = set;
+                    }
+                    set++;
+                }
+                return lru;
             }
-        }
-
-        private uint victim()
-        {
-            uint loc = 0;
-            uint lru = 0;
-            // Look up
-            while (loc < mem.Length && mem[loc] != null)
+            else if(cacheType == Type.Associative)
             {
-                if (((AsctvCache)mem[lru]).readOrder > ((AsctvCache)mem[loc]).readOrder)
-                    lru = loc;
-                loc++;
+                uint loc = 0;
+                uint lru = 0;
+                // Look up
+                while (loc < mem.Length && mem[loc] != null)
+                {
+                    if (((AsctvCache)mem[lru]).readOrder > ((AsctvCache)mem[loc]).readOrder)
+                        lru = loc;
+                    loc++;
+                }
+                return lru;
             }
-            return lru;
+            else
+            {
+                return 0;
+            }
         }
 
         private Exception error(uint available)
@@ -426,69 +465,4 @@ namespace CacheSimulator
     ///    512, 64, 1);
     ///    
     /// </summary>
-
-    interface Block { }
-
-    class SetAsctvCache : Block
-    {
-        public BaseBlock[] blocks;
-        public SetAsctvCache(uint setLen)
-        {
-            blocks = new BaseBlock[setLen];
-        }
-        public uint victim()
-        {
-            uint set = 0;
-            uint lru = 0;
-            while(set<blocks.Length && blocks[set] != null)
-            {
-                if(blocks[lru].readOrder > blocks[set].readOrder)
-                {
-                    lru = set;
-                }
-                set++;
-            }
-            return lru;
-        }
-    }
-
-    class BaseBlock : Block
-    {
-        public uint readOrder;
-        public uint tag;
-        public byte[] data;
-
-        public BaseBlock(uint tag, uint dataLen)
-        {
-            this.tag = tag;
-            data = new byte[dataLen];
-        }
-    }
-
-    class DirectCache : BaseBlock
-    {
-        public DirectCache(uint tag, uint dataLen)
-            : base(tag, dataLen) { }
-    }
-
-    class AsctvCache: BaseBlock
-    {
-        public AsctvCache(uint tag, uint dataLen)
-            :base(tag, dataLen) { }
-    }
-
-    public class AddrInfo
-    {
-        public uint tag;
-        public uint loc;
-        public double time;
-        public string state;
-        public bool[] mem;
-        public AddrInfo child;
-    }
-
-    public class SetAddr : AddrInfo
-    {
-        public uint set;
-    }
 }
