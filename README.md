@@ -13,7 +13,7 @@ Dongguk univ. Computer Architecture assignment
 
 - [ ] Refactoring
 
-# Explain
+# Usage
 
 ![image01](image01.png "direct")
 
